@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const PORT = '3001';
 
+app.use(express.json());
+
 let persons = [
     { 
       "id": 1,
@@ -41,6 +43,46 @@ app.get('/info', (req, res) =>{
         </br></br>
         ${Date()}</p>`
     )
+})
+
+app.delete('/api/persons/:id', (req, res) => {
+  const id = Number(req.params.id);
+  persons = persons.filter(person => person.id !== id);
+
+  res.status(204).end()
+})
+
+function generateID() {
+  return Math.floor(Math.random() * (1000000 - persons.length) + persons.length);
+}
+
+app.post('/api/persons', (req, res) => {
+  const body = req.body;
+  
+  if(!body['name']){
+    return res.status(400).json({
+      error: 'Must enter a name'
+    });
+  } else if(!body['number']){
+    return res.status(400).json({
+      error: 'Must enter a number'
+    });
+  } else if(persons.filter(e => e.name === body['name']).length > 0){
+    return res.status(400).json({
+      error: 'Name already in phonebook'
+    });
+  }
+
+  const person = {
+    id: generateID(),
+    name: body['name'],
+    number: body['number']
+  }
+
+  persons = persons.concat(person);
+  
+  console.log(persons);
+  res.json(person);
 })
 
 app.listen(PORT, () => {
